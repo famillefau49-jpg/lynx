@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réseau du Lynx</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at top, rgba(120,90,40,0.18), transparent 35%),
+        linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+      color: #eadfc7;
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 1px,
+          transparent 2px,
+          transparent 4px
+        );
+      opacity: 0.2;
+      mix-blend-mode: soft-light;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      background:
+        linear-gradient(rgba(26,22,18,0.94), rgba(20,17,14,0.96)),
+        #1b1b1b;
+      border: 2px solid #7a5c2e;
+      border-radius: 16px;
+      padding: 28px 24px 22px;
+      text-align: center;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 20px 50px rgba(0,0,0,0.65),
+        0 0 30px rgba(122,92,46,0.18);
+      position: relative;
+    }
+
+    .container::before {
+      content: "TRANSMISSION SÉCURISÉE";
+      display: block;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: #b79a65;
+      margin-bottom: 14px;
+      opacity: 0.85;
+    }
+
+    .symbol {
+      font-size: 34px;
+      color: #b79a65;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(183,154,101,0.15);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 3px;
+      color: #f2e6ca;
+      text-shadow: 0 0 8px rgba(255,220,150,0.08);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.82;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px 14px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #7a5c2e;
+      background: #2a241d;
+      color: #eadfc7;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input:focus {
+      border-color: #b79156;
+      box-shadow: 0 0 0 3px rgba(183,145,86,0.12);
+    }
+
+    button {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #9b7545, #7f5d35);
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: transform 0.08s ease, filter 0.15s ease;
+    }
+
+    button:hover { filter: brightness(1.06); }
+    button:active { transform: translateY(1px); }
+
+    .result {
+      margin-top: 22px;
+      padding: 20px 18px;
+      border-radius: 12px;
+      background: #241f19;
+      line-height: 1.7;
+      font-size: 18px;
+      border: 1px solid rgba(183,154,101,0.18);
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .status {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #b79a65;
+      opacity: 0.9;
+    }
+
+    .team {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 10px 0 6px;
+      letter-spacing: 1px;
+    }
+
+    .res { color: #6fb4ff; }
+    .enf { color: #f2cb5b; }
+    .all { color: #ff7878; }
+
+    .pseudo {
+      font-size: 14px;
+      opacity: 0.92;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 12px;
+      opacity: 0.6;
+      letter-spacing: 1px;
+    }
+
+    .blink {
+      animation: blink 1.2s step-end infinite;
+    }
+
+    .team-sheet {
+      margin-top: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, #2a231b, #201b15);
+      border: 1px solid rgba(183,154,101,0.28);
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .team-sheet-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #b79a65;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .team-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      columns: 2;
+      column-gap: 20px;
+    }
+
+    .team-list li {
+      margin-bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      break-inside: avoid;
+      font-size: 15px;
+      color: #eadfc7;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .highlighted-player {
+      background: rgba(183,145,86,0.22) !important;
+      border: 1px solid rgba(183,145,86,0.45);
+      color: #fff3d6 !important;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(183,145,86,0.18);
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.45; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 520px) {
+      .team-list {
+        columns: 1;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .team {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="symbol">✠</div>
+    <h1>RÉSEAU DU LYNX</h1>
+    <div class="subtitle">
+      Entre ton pseudo.<br>
+      Ton affectation te sera transmise immédiatement.
+    </div>
+
+    <input id="pseudo" placeholder="Entre ton pseudo" autocomplete="off" />
+    <button onclick="check()">VALIDER</button>
+
+    <div id="result" class="result"></div>
+
+    <div class="footer">VIVRE LIBRE OU MOURIR</div>
+  </div>
+
+  <script>
+    function normalize(s) {
+      return s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    const resistants = [
+      "lydaniel",
+      "jeredim",
+      "bonny28",
+      "lasher77",
+      "nene71",
+      "alcyona",
+      "djsellig",
+      "jipet",
+      "troupev",
+      "major+1%",
+      "beamathis",
+      "vosgespatt",
+      "loup silencieux",
+      "cricridamour73",
+      "brucegsxf",
+      "wagglers",
+      "corgimaské"
+    ];
+
+    const enfants = [
+      "justnous",
+      "caroturtle",
+      "philomenal",
+      "fina18",
+      "maryphil21",
+      "nefertari58",
+      "gode_froi",
+      "leboron",
+      "corinou",
+      "val_du89",
+      "teamnano89200",
+      "pikachujojo",
+      "licker63",
+      "mary&smocky",
+      "océane.herm",
+      "tiare02"
+    ];
+
+    const allemands = [
+      "lyspaul41",
+      "guessourilles45",
+      "kakacon",
+      "powerdancejm",
+      "carfantin",
+      "kiwi1030",
+      "chrisde",
+      "koouye",
+      "maryline&frederic",
+      "nounie",
+      "levan51",
+      "altimarno",
+      "lardenaxe",
+      "xstelle",
+      "shoot5176"
+    ];
+
+    function renderTeamList(teamName, teamClass, list, inputPseudo, missionText, statusText) {
+      const normalizedInput = normalize(inputPseudo);
+
+      const listHtml = list.map(name => {
+        const isMatch = normalize(name) === normalizedInput;
+        return `<li class="${isMatch ? 'highlighted-player' : ''}">${name}</li>`;
+      }).join("");
+
+      return `
+        <div class="status">${statusText}</div>
+        <div style="margin-top:10px;"><strong>Le Lynx t’a identifié…</strong></div>
+        <div class="pseudo" style="margin-top:10px;">Pseudo reconnu : ${inputPseudo}</div>
+        <div class="team ${teamClass}">${teamName}</div>
+        <div>${missionText}</div>
+
+        <div class="team-sheet">
+          <div class="team-sheet-title">Composition de l’équipe</div>
+          <ul class="team-list">
+            ${listHtml}
+          </ul>
+        </div>
+      `;
+    }
+
+    function check() {
+      const input = document.getElementById("pseudo").value.trim();
+      const p = normalize(input);
+      const res = document.getElementById("result");
+
+      res.style.display = "block";
+      res.innerHTML = `<div class="status blink">Identification en cours...</div>`;
+
+      setTimeout(() => {
+        if (resistants.map(normalize).includes(p)) {
+          res.innerHTML = renderTeamList(
+            "RÉSISTANTS",
+            "res",
+            resistants,
+            input,
+            `Organiser. Protéger. Transmettre.<br>
+            La mission commence maintenant.<br>
+            Ne révèle rien.`,
+            "Transmission validée"
+          );
+        } else if (enfants.map(normalize).includes(p)) {
+          res.innerHTML = renderTeamList(
+            "ENFANTS",
+            "enf",
+            enfants,
+            input,
+            `Observer. Chercher. Comprendre.<br>
+            Le moindre détail peut tout changer.<br>
+            Reste discret.`,
+            "Transmission validée"
+          );
+        } else if (allemands.map(normalize).includes(p)) {
+          res.innerHTML = renderTeamList(
+            "ALLEMANDS",
+            "all",
+            allemands,
+            input,
+            `Surveiller. Contrôler. Intercepter.<br>
+            Aucun message ne doit passer.<br>
+            Trouve-les avant eux.`,
+            "Transmission interceptée"
+          );
+        } else {
+          res.innerHTML = `
+            <div class="status">Échec d’identification</div>
+            <div style="margin-top:10px;"><strong>Pseudo inconnu</strong></div>
+            <div class="pseudo" style="margin-top:10px;">
+              Vérifie l’orthographe et recommence.
+            </div>
+          `;
+        }
+      }, 700);
+    }
+  </script>
+</body>
+</html>
